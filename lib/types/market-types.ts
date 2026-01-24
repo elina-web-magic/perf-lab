@@ -9,15 +9,18 @@ type InstrumentCategory =
 
 type InstrumentCurrency = "USD" | "EUR" | "GBP" | "CHF" | "USDT";
 
-type RiskLevel = "high-risk" | "volatile" | "low-risk";
+export type RiskLevel = "high-risk" | "volatile" | "low-risk";
 
 export type InstrumentId = Branded<string, "InstrumentId">;
 export type Ticker = Branded<string, "Ticker">;
+export type Name = Branded<string, "Name">;
+export type Category = MarketInstrument["category"];
+export type Currency = MarketInstrument["currency"];
 
 export type MarketInstrument = {
 	id: InstrumentId;
 	ticker: Ticker;
-	name: string;
+	name: Name;
 	category: InstrumentCategory;
 	currentPrice: number;
 	change: number;
