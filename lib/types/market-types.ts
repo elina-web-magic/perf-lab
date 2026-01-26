@@ -29,3 +29,9 @@ export type MarketInstrument = {
 	tradeAvailable: boolean;
 	riskLevel: RiskLevel;
 };
+
+export type HotState = {
+	currentPrice: number;
+	change: number;
+	volume: number;
+};
