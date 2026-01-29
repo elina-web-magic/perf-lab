@@ -1,7 +1,7 @@
 "use client";
 
-import MarketTableBody from "@/components/perf-lab/MarketTableBody";
-import MarketTableHeader from "@/components/perf-lab/MarketTableHeader";
+import MarketTableBody from "@/components/custom-ui/Row";
+import MarketTableHeader from "@/components/custom-ui/Header";
 import { Button } from "@/components/ui/button";
 import { randomFloat } from "@/lib/perf-lab/randomizers";
 import type {
@@ -14,7 +14,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 const STREAM_INTERVAL = 1000;
 const PACKAGE_PORTION = 200;
 
-const PerfLabPage = ({
+const PerfLbClient = ({
 	instrumentsData,
 }: {
 	instrumentsData: MarketInstrument[];
@@ -119,4 +119,4 @@ const PerfLabPage = ({
 	);
 };
 
-export default PerfLabPage;
+export default PerfLbClient;
