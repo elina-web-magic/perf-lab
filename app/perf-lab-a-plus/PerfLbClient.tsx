@@ -13,11 +13,18 @@ import {
 	type ReactElement,
 	Suspense,
 	useCallback,
+	useEffect,
 	useRef,
 	useState,
 } from "react";
 import { useScrollTop } from "@/lib/hooks/useScrollTop";
-import { DEFAULT_OVERSCAN_ROWS, MARKET_RAW_ITEM_HEIGHT } from "@/lib/constants";
+import {
+	DEFAULT_OVERSCAN_ROWS,
+	DEFAULT_PAGE_SIZE,
+	INITIAL_COUNT,
+	MARKET_RAW_ITEM_HEIGHT,
+} from "@/lib/constants";
+import type { VirtualWindowOutputs } from "@/lib/virtualization/getVirtualWindow";
 
 const PerfLbClientAPlus = ({
 	instrumentsData,
@@ -27,11 +34,18 @@ const PerfLbClientAPlus = ({
 	const [hotState, setHotState] = useState<Map<InstrumentId, HotState>>(
 		new Map(),
 	);
+	const totalAvailable = instrumentsData?.length;
 	const [streamOn, setStreamOn] = useState(false);
 	const [ticksCount, setTicksCount] = useState(0);
 	const layerRef = useRef<HTMLDivElement>(null);
 	const [viewportHeight, setViewportHeight] = useState<number>(0);
-	const scrollTop = useScrollTop(layerRef);
+
+	const [window, setWindow] = useState<VirtualWindowOutputs>();
+	const [scrollNode, setScrollNode] = useState<HTMLDivElement | null>(null);
+
+	const [loadedCount, setLoadedCount] = useState<number>(() =>
+		Math.min(INITIAL_COUNT, totalAvailable),
+	);
 
 	const startStream = useCallback(() => {
 		setStreamOn(true);
@@ -44,15 +58,38 @@ const PerfLbClientAPlus = ({
 		setHotState(new Map());
 	}, []);
 
+	const handleWindowChange = (data: VirtualWindowOutputs) => {
+		setWindow(data);
+	};
 
-const setLayerNode = useCallback((node: HTMLDivElement | null) => {
-	layerRef.current = node;
-	if (!node) return;
+	const setLayerNode = useCallback((node: HTMLDivElement | null) => {
+		layerRef.current = node;
+		setScrollNode(node);
+		if (!node) return;
 
-	const h = node.getBoundingClientRect().height;
-	setViewportHeight((prev) => (prev !== h ? h : prev));
-}, []);
+		const h = node.getBoundingClientRect().height;
+		setViewportHeight((prev) => (prev !== h ? h : prev));
+	}, []);
 
+	const { scrollTopRef, scrollTick } = useScrollTop(scrollNode);
+
+	const loadMore = useCallback(() => {
+		setLoadedCount((prev) => {
+			if (prev >= totalAvailable) return prev;
+			return Math.min(prev + DEFAULT_PAGE_SIZE, totalAvailable);
+		});
+	}, [totalAvailable]);
+
+	useEffect(() => {
+		if (!window) return;
+		const threshold = window?.visibleCount * 2;
+		const shouldLoadMore = window.overscanEnd >= loadedCount - threshold;
+
+		if (!shouldLoadMore) return;
+
+		// eslint-disable-next-line react-hooks/set-state-in-effect
+		loadMore();
+	}, [window, loadMore, loadedCount]);
 
 	return (
 		<div>
@@ -68,12 +105,15 @@ const setLayerNode = useCallback((node: HTMLDivElement | null) => {
 					<MarketTableHeader />
 					<div className="h-[70vh] overflow-y-auto border" ref={setLayerNode}>
 						<VirtualList
-							totalCount={instrumentsData?.length}
+							totalCount={loadedCount}
 							viewportHeight={viewportHeight}
-							scrollTop={scrollTop.current}
+							scrollTopRef={scrollTopRef}
+							scrollTick={scrollTick}
 							rowHeight={MARKET_RAW_ITEM_HEIGHT}
 							overscanRows={DEFAULT_OVERSCAN_ROWS}
 							getKey={(index) => instrumentsData[index].id}
+							onWindowChange={handleWindowChange}
+							className="Virtual_List"
 						>
 							{(index) => {
 								const instrument = instrumentsData[index];

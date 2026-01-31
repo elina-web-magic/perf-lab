@@ -1,22 +1,34 @@
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export const useScrollTop = (elemRef: RefObject<HTMLDivElement | null>) => {
+export const useScrollTop = (node: HTMLDivElement | null) => {
 	const scrollTopRef = useRef<number>(0);
+	const rafIdRef = useRef<number | null>(null);
+	const [scrollTick, setScrollTick] = useState(0);
 
 	useEffect(() => {
-		const el = elemRef?.current as HTMLElement;
-		if (!el) return;
+		if (!node) return;
 
-		const handleScroll = () => {
-			scrollTopRef.current = el.scrollTop;
+		const onScroll = () => {
+			scrollTopRef.current = node.scrollTop;
+
+			if (rafIdRef.current !== null) return;
+
+			rafIdRef.current = window.requestAnimationFrame(() => {
+				rafIdRef.current = null;
+				setScrollTick((t) => t + 1);
+			});
 		};
 
-		el.addEventListener("scroll", handleScroll, { passive: true });
+		onScroll();
+		node.addEventListener("scroll", onScroll, { passive: true });
 
 		return () => {
-			el.removeEventListener("scroll", handleScroll);
+			node.removeEventListener("scroll", onScroll);
+			if (rafIdRef.current !== null)
+				window.cancelAnimationFrame(rafIdRef.current);
+			rafIdRef.current = null;
 		};
-	}, [elemRef]);
+	}, [node]);
 
-	return scrollTopRef;
+	return { scrollTopRef, scrollTick };
 };

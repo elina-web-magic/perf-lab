@@ -8,7 +8,7 @@ type VirtualWindowInputs = {
 	overscanRows: number;
 };
 
-type VirtualWindowOutputs = {
+export type VirtualWindowOutputs = {
 	startIndex: number;
 	endIndex: number;
 	overscanStart: number;
