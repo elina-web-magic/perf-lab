@@ -6,7 +6,7 @@ import type {
 	ProductId,
 } from "@/components/perf-lab-b/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isNumber } from "@/lib/utils/isNumber";
+import _ from "lodash";
 
 type UseProductsReturn = {
 	products: Product[];
@@ -24,7 +24,7 @@ type UseProductsArgs = {
 const mapApiProductToProduct = (api: DummyApiProduct[]): Product[] => {
 	return api.map((apiProduct: DummyApiProduct) => {
 		const inStock = apiProduct.stock > 0;
-		const discountPercentage = isNumber(apiProduct.discountPercentage)
+		const discountPercentage = _.isNumber(apiProduct.discountPercentage)
 			? Math.round(apiProduct.discountPercentage)
 			: undefined;
 

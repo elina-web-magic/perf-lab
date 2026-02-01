@@ -1,4 +1,4 @@
-import { clamp } from "@/lib/utils/math/clamp";
+import _ from "lodash";
 
 type VirtualWindowInputs = {
 	viewportHeight: number;
@@ -26,16 +26,16 @@ export const getVirtualWindow = (
 
 	const visibleCount = Math.max(1, Math.floor(viewportHeight / rowHeight));
 	const startIndex = Math.floor(
-		clamp(scrollTop / rowHeight, 0, totalCount - 1),
+		_.clamp(scrollTop / rowHeight, 0, totalCount - 1),
 	);
 	const endIndex = Math.floor(
-		clamp(startIndex + visibleCount - 1, 0, totalCount - 1),
+		_.clamp(startIndex + visibleCount - 1, 0, totalCount - 1),
 	);
 	const overscanStart = Math.floor(
-		clamp(startIndex - overscanRows, 0, totalCount - 1),
+		_.clamp(startIndex - overscanRows, 0, totalCount - 1),
 	);
 	const overscanEnd = Math.floor(
-		clamp(endIndex + overscanRows + 1, 0, totalCount),
+		_.clamp(endIndex + overscanRows + 1, 0, totalCount),
 	);
 
 	return {
