@@ -1,60 +1,47 @@
 "use client";
 
-import MarketTableHeader from "@/components/custom-ui/Header";
 import ProductCard from "@/components/perf-lab-a/ProductCard";
-import type { ProductId } from "@/components/perf-lab-b/types";
-import { Button } from "@/components/ui/button";
-import type {
-	HotState,
-	InstrumentId,
-	MarketInstrument,
-} from "@/lib/types/market-types";
-import {
-	type ReactElement,
-	Suspense,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
+import VirtualList from "@/components/perf-lab-b/ui/VirtualList";
+import { useProducts } from "@/lib/hooks/useProducts";
+import type { ReactElement } from "react";
 
-const PerfLabB = ({
-	instrumentsData,
-}: {
-	instrumentsData: MarketInstrument[];
-}): ReactElement | null => {
-	const totalAvailable = instrumentsData?.length;
-	const [streamOn, setStreamOn] = useState(false);
-	const [ticksCount, setTicksCount] = useState(0);
-	const [hotState, setHotState] = useState<Map<InstrumentId, HotState>>(
-		new Map(),
-	);
+const LIMIT_VALUE = 10;
 
-	const startStream = useCallback(() => {
-		setStreamOn(true);
-		setTicksCount(0);
-	}, []);
+const PerfLabB = (): ReactElement | null => {
+	const { products, loadMore, hasMore, loading } = useProducts({
+		limit: LIMIT_VALUE,
+	});
 
-	const stopStream = useCallback(() => {
-		setStreamOn(false);
-		setTicksCount(0);
-		setHotState(new Map());
-	}, []);
+	if (products.length <= 0) return null;
 
-	if (!instrumentsData) return <>No data</>;
+	const renderCount = products.length;
 
 	return (
 		<div className="max-h-[100vh] p-4 w-full">
 			<h1 className="text-2xl font-bold mb-4">Perf Lab</h1>
-			<div className="w-full">
-				<ProductCard
-					id={"1" as ProductId}
-					title="Product 1"
-					price={{ value: 10, currency: "EUR" }}
-					available={false}
-					brand="Nike"
-				/>
-			</div>
+			<VirtualList
+				className="Virtual_List"
+				loadMore={loadMore}
+				hasMore={hasMore}
+				renderCount={renderCount}
+				loading={loading}
+			>
+				{(index) => {
+					const list = products[index];
+
+					return (
+						<ProductCard
+							key={list.id}
+							id={list.id}
+							title={list.title}
+							price={list.price}
+							available={list.available}
+							brand={list.brand}
+							images={list.images}
+						/>
+					);
+				}}
+			</VirtualList>
 		</div>
 	);
 };

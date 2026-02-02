@@ -4,7 +4,6 @@ import {
 	Card,
 	CardAction,
 	CardContent,
-	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle,
@@ -13,7 +12,7 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 
 const ProductCard = (props: ProductCardProps): JSX.Element | null => {
-	const { id, title, brand, price, imageUrl, discount, available } = props;
+	const { id, title, brand, price, images, discount, available } = props;
 	const isAvailable = available;
 
 	if (!props.id) return null;
@@ -29,13 +28,17 @@ const ProductCard = (props: ProductCardProps): JSX.Element | null => {
 					<div className="text-center">Like Icon</div>
 				</div>
 			</CardHeader>
-			<CardContent className="ProductCardContent flex flex-col justify-center  content-center gap-2">
-				<p className="text-center">Card Content</p>
+			<CardContent className="ProductCardContent flex flex-col justify-center content-center gap-2">
+				<img
+					src={images?.[0]}
+					alt="Event cover"
+					className="relative z-20 aspect-1 w-full object-cover dark:brightness-40"
+				/>
 			</CardContent>
 			<CardFooter className="ProductCardFooter flex-col justify-center gap-2 content-center">
-				<CardTitle className="ProductCardTitle flex flex-col justify-center gap-2">
-					<p className="ProductCardTitle">{title}</p>
-					<span className="ProductCardBrand">{brand}</span>
+				<CardTitle className="ProductCardTitle flex flex-col justify-center content-center gap-2">
+					<p className="ProductCardTitle text-center">{title}</p>
+					<span className="ProductCardBrand text-center">{brand}</span>
 				</CardTitle>
 				<p className="ProductCardPrice text-center">
 					{price.value} {price.currency}

@@ -87,7 +87,6 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 	const loadMore = useCallback(() => {
 		void fetchNextPage();
 	}, [fetchNextPage]);
-
 	useEffect(() => {
 		if (limit <= 0) return;
 		fetchNextPage();
