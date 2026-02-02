@@ -29,12 +29,20 @@ export default function VirtualList(props: VirtualListProps) {
 	const visibleRows: ReactNode[] = [];
 	const sentinelRef = useRef<HTMLDivElement | null>(null);
 	const containerRef = useRef<HTMLDivElement | null>(null);
-
+	const didMountRef = useRef(false);
 	const requestedRef = useRef(false);
+
+	useEffect(() => {
+		didMountRef.current = true;
+	}, []);
 
 	useEffect(() => {
 		if (!loading) requestedRef.current = false;
 	}, [loading]);
+
+	useEffect(() => {
+		if (!hasMore) requestedRef.current = false;
+	}, [hasMore]);
 
 	for (let i = 0; i < renderCount; i++) {
 		const key = getKey ? getKey(i) : String(i);
@@ -45,6 +53,7 @@ export default function VirtualList(props: VirtualListProps) {
 	useEffect(() => {
 		if (!hasMore) return;
 		if (!sentinelRef.current || !containerRef.current) return;
+		if (!didMountRef.current) return;
 		const root = containerRef.current;
 
 		const sentinel = sentinelRef.current;
@@ -69,7 +78,7 @@ export default function VirtualList(props: VirtualListProps) {
 		observer.observe(sentinel);
 
 		return () => {
-			observer.disconnect();
+			observer.unobserve(sentinel);
 		};
 	}, [loadMore, hasMore, loading]);
 
@@ -82,7 +91,13 @@ export default function VirtualList(props: VirtualListProps) {
 			)}
 		>
 			{visibleRows}
-			{hasMore ? <div className="ProductLast" ref={sentinelRef} /> : null}
+			{hasMore ? (
+				<div className="ProductLast" ref={sentinelRef} />
+			) : (
+				<div className="py-6 text-center text-sm text-muted-foreground">
+					End of list
+				</div>
+			)}
 		</div>
 	);
 }
