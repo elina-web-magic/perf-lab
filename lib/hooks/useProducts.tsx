@@ -9,6 +9,7 @@ type UseProductsReturn = {
 	loading: boolean;
 	searchLoading?: boolean;
 	loadMoreLoading?: boolean;
+	suggestionsLoading?: boolean;
 	error: string | null;
 	loadMore: () => void;
 	hasMore: boolean;
@@ -29,6 +30,8 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 	const [products, setProducts] = useState<Product[]>([]);
 	const [searchLoading, setSearchLoading] = useState(false);
 	const [loadMoreLoading, setLoadMoreLoading] = useState(false);
+	const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+
 	const [error, setError] = useState<string | null>(null);
 
 	const totalRef = useRef<number | null>(null);
@@ -50,6 +53,7 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 				setLoading(true);
 			} else {
 				setSearchLoading(true);
+				setSuggestionsLoading(true);
 			}
 
 			setError(null);
@@ -81,6 +85,7 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 					setLoading(false);
 					setSearchLoading(false);
 					setLoadMoreLoading(false);
+					setSuggestionsLoading(false);
 					inFlightRef.current = false;
 				} else {
 					inFlightRef.current = false;
@@ -106,6 +111,7 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 		setLoading(false);
 		setSearchLoading(false);
 		setLoadMoreLoading(false);
+		setSuggestionsLoading(false);
 
 		if (query.length > 0) {
 			void fetchNextPage("replace");
@@ -119,6 +125,7 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 		loading,
 		searchLoading,
 		loadMoreLoading,
+		suggestionsLoading,
 		error,
 		loadMore,
 		hasMore,

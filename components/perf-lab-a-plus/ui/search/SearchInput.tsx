@@ -1,11 +1,5 @@
 "use client";
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput,
-} from "@/components/ui/input-group";
-import { Search } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
+
 import {
 	type ChangeEvent,
 	useRef,
@@ -13,22 +7,26 @@ import {
 	type ReactNode,
 	useCallback,
 } from "react";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import AutocompleteUI from "./AutocompleteUI";
+import type { Product } from "@/components/perf-lab-b/types";
 
 const DEBOUNCE_TIME = 1000;
 
 type SearchInputProps = {
 	onQueryChange: (value: string) => void;
-	searchLoading: boolean;
+	onInputChange: (value: string) => void;
+	suggestions: Product[];
+	suggestionsLoading: boolean;
 };
 
 export function SearchInput(props: SearchInputProps): ReactNode {
-	const { onQueryChange, searchLoading } = props;
+	const { onQueryChange, onInputChange, suggestions, suggestionsLoading } =
+		props;
 
 	const [inputValue, setInputValue] = useState("");
 
 	const debounceTimeRef = useRef<NodeJS.Timeout | null>(null);
+	const debounceSuggestionsRef = useRef<NodeJS.Timeout | null>(null);
 
 	const clearSearch = useCallback(() => {
 		if (debounceTimeRef.current !== null) {
@@ -37,55 +35,49 @@ export function SearchInput(props: SearchInputProps): ReactNode {
 		}
 		onQueryChange("");
 		setInputValue("");
-	}, [onQueryChange]);
+		onInputChange("");
+	}, [onQueryChange, onInputChange]);
 
-	const handleSearch = (e: ChangeEvent) => {
-		e.stopPropagation();
-		const value = (e.target as HTMLInputElement).value;
-
-		setInputValue(value);
-
-		if (debounceTimeRef.current !== null) {
-			clearTimeout(debounceTimeRef.current);
-			debounceTimeRef.current = null;
-		}
-
-		debounceTimeRef.current = setTimeout(() => {
+	const handleSearch = useCallback(
+		(e: ChangeEvent) => {
+			const value = (e.target as HTMLInputElement).value;
 			const nextQuery = value.trim();
-			if (nextQuery.length === 0) {
-				clearSearch();
-				return;
+
+			setInputValue(value);
+			onInputChange(nextQuery);
+
+			if (debounceTimeRef.current !== null) {
+				clearTimeout(debounceTimeRef.current);
+				debounceTimeRef.current = null;
 			}
-			onQueryChange(nextQuery);
-		}, DEBOUNCE_TIME);
-	};
+
+			if (debounceSuggestionsRef.current !== null) {
+				clearTimeout(debounceSuggestionsRef.current);
+				debounceSuggestionsRef.current = null;
+			}
+
+			debounceTimeRef.current = setTimeout(() => {
+				if (nextQuery.length === 0) {
+					clearSearch();
+					return;
+				}
+				onQueryChange(nextQuery);
+			}, DEBOUNCE_TIME);
+		},
+		[clearSearch, onQueryChange, onInputChange],
+	);
 
 	return (
 		<div className="Search_Input grid w-full max-w-sm gap-4">
-			<InputGroup className="max-w-xs">
-				<InputGroupInput
-					placeholder="Search"
-					value={inputValue}
-					onChange={handleSearch}
-				/>
-				<InputGroupAddon>
-					<Search />
-				</InputGroupAddon>
-				<InputGroupAddon className="pr-3" align="inline-end">
-					{searchLoading ? (
-						<Spinner />
-					) : (
-						<Button
-							className="p-0"
-							variant="ghost"
-							size="icon"
-							onClick={clearSearch}
-						>
-							<X />
-						</Button>
-					)}
-				</InputGroupAddon>
-			</InputGroup>
+			<AutocompleteUI
+				name="search"
+				placeholder="Search"
+				onClear={clearSearch}
+				onChange={handleSearch}
+				value={inputValue}
+				suggestions={suggestions}
+				suggestionsLoading={suggestionsLoading}
+			/>
 		</div>
 	);
 }
