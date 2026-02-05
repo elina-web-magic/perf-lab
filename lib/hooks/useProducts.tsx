@@ -1,10 +1,5 @@
-import type { DummyApiProduct } from "@/components/perf-lab-b/api/dummyjson.types";
 import { loadProducts } from "@/components/perf-lab-b/api/loadProducts";
-import type {
-	Category,
-	Product,
-	ProductId,
-} from "@/components/perf-lab-b/types";
+import type { Product } from "@/components/perf-lab-b/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import _ from "lodash";
 import { mapApiProductToProduct } from "@/components/perf-lab-b/api/mapApiProductToProduct";
@@ -13,6 +8,7 @@ type UseProductsReturn = {
 	products: Product[];
 	loading: boolean;
 	searchLoading?: boolean;
+	loadMoreLoading?: boolean;
 	error: string | null;
 	loadMore: () => void;
 	hasMore: boolean;
@@ -24,12 +20,15 @@ type UseProductsArgs = {
 	query?: string;
 };
 
+type Mode = "replace" | "loadMore" | "init";
+
 export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 	const { limit, initialSkip = 0, query = "" } = props;
 
 	const [loading, setLoading] = useState<boolean>(false);
 	const [products, setProducts] = useState<Product[]>([]);
 	const [searchLoading, setSearchLoading] = useState(false);
+	const [loadMoreLoading, setLoadMoreLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	const totalRef = useRef<number | null>(null);
@@ -41,15 +40,18 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 		totalRef.current === null ? true : products.length < totalRef.current;
 
 	const fetchNextPage = useCallback(
-		async (mode: "replace" | "append") => {
+		async (mode: Mode) => {
 			if (inFlightRef.current) return;
-			if (!hasMore && mode === "append") return;
+			if (!hasMore && mode === "loadMore") return;
 
-			if (mode === "append") {
+			if (mode === "loadMore") {
+				setLoadMoreLoading(true);
+			} else if (mode === "init") {
 				setLoading(true);
 			} else {
 				setSearchLoading(true);
 			}
+
 			setError(null);
 			inFlightRef.current = true;
 
@@ -78,6 +80,7 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 				if (requestId === requestIdRef.current) {
 					setLoading(false);
 					setSearchLoading(false);
+					setLoadMoreLoading(false);
 					inFlightRef.current = false;
 				} else {
 					inFlightRef.current = false;
@@ -89,10 +92,10 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 
 	const loadMore = useCallback(() => {
 		if (!hasMore) return;
-		void fetchNextPage("append");
+
+		void fetchNextPage("loadMore");
 	}, [fetchNextPage, hasMore]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		if (limit <= 0) return;
 
@@ -102,15 +105,20 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 		setError(null);
 		setLoading(false);
 		setSearchLoading(false);
+		setLoadMoreLoading(false);
 
-		void fetchNextPage("replace");
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [limit, initialSkip, query]);
+		if (query.length > 0) {
+			void fetchNextPage("replace");
+		} else {
+			void fetchNextPage("init");
+		}
+	}, [limit, initialSkip, query, fetchNextPage]);
 
 	return {
 		products,
 		loading,
 		searchLoading,
+		loadMoreLoading,
 		error,
 		loadMore,
 		hasMore,

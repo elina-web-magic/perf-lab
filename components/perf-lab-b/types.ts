@@ -37,5 +37,12 @@ export interface Product {
 
 export type ProductCardProps = Pick<
 	Product,
-	"id" | "title" | "brand" | "price" | "images" | "discount" | "available"
+	| "id"
+	| "title"
+	| "brand"
+	| "price"
+	| "images"
+	| "discount"
+	| "available"
+	| "category"
 >;

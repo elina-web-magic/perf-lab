@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import Image from "next/image";
 
 const ProductCard = (props: ProductCardProps): JSX.Element | null => {
-	const { id, title, brand, price, images, discount, available } = props;
+	const { id, title, category, brand, price, images, discount, available } =
+		props;
 	const isAvailable = available;
 
 	if (!props.id) return null;
@@ -29,14 +31,17 @@ const ProductCard = (props: ProductCardProps): JSX.Element | null => {
 				</div>
 			</CardHeader>
 			<CardContent className="ProductCardContent flex flex-col justify-center content-center gap-2">
-				<img
-					src={images?.[0]}
-					alt="Event cover"
+				<Image
+					width={500}
+					height={500}
+					src={images?.[0] ?? ""}
+					alt="Product Image"
 					className="relative z-20 aspect-1 w-full object-cover dark:brightness-40"
 				/>
 			</CardContent>
 			<CardFooter className="ProductCardFooter flex-col justify-center gap-2 content-center">
 				<CardTitle className="ProductCardTitle flex flex-col justify-center content-center gap-2">
+					<div className="ProductCardCategory text-center">{category}</div>
 					<p className="ProductCardTitle text-center">{title}</p>
 					<span className="ProductCardBrand text-center">{brand}</span>
 				</CardTitle>

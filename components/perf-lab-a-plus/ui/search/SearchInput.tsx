@@ -77,7 +77,7 @@ export function SearchInput(props: SearchInputProps): ReactNode {
 					) : (
 						<Button
 							className="p-0"
-							variant="outline"
+							variant="ghost"
 							size="icon"
 							onClick={clearSearch}
 						>
