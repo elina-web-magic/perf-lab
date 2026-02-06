@@ -1,14 +1,13 @@
 import type { Branded } from "@/lib/types/brand";
+import type { PRODUCT_CATEGORIES } from "./constants";
 
 export type ProductId = Branded<string, "ProductId">;
 export type ProductBrand = string;
-export type Category =
-	| "beauty"
-	| "fragrances"
-	| "furniture"
-	| "groceries"
-	| "home-decoration"
-	| "kitchen-accessories";
+export type Category = (typeof PRODUCT_CATEGORIES)[number];
+export type CategoryOption = {
+	id: Category;
+	value: string;
+};
 
 export type Currency = "EUR" | "USD";
 

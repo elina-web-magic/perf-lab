@@ -8,22 +8,19 @@ import {
 	useCallback,
 } from "react";
 import AutocompleteUI from "./AutocompleteUI";
-import type { Product } from "@/components/perf-lab-b/types";
+import { useProductSuggestions } from "@/lib/hooks/useProductSuggestions";
 
 const DEBOUNCE_TIME = 1000;
 
 type SearchInputProps = {
 	onQueryChange: (value: string) => void;
-	onInputChange: (value: string) => void;
-	suggestions: Product[];
-	suggestionsLoading: boolean;
 };
 
 export function SearchInput(props: SearchInputProps): ReactNode {
-	const { onQueryChange, onInputChange, suggestions, suggestionsLoading } =
-		props;
+	const { onQueryChange } = props;
 
 	const [inputValue, setInputValue] = useState("");
+	const { suggestions, suggestionsLoading } = useProductSuggestions(inputValue);
 
 	const debounceTimeRef = useRef<NodeJS.Timeout | null>(null);
 	const debounceSuggestionsRef = useRef<NodeJS.Timeout | null>(null);
@@ -35,8 +32,7 @@ export function SearchInput(props: SearchInputProps): ReactNode {
 		}
 		onQueryChange("");
 		setInputValue("");
-		onInputChange("");
-	}, [onQueryChange, onInputChange]);
+	}, [onQueryChange]);
 
 	const handleSearch = useCallback(
 		(e: ChangeEvent) => {
@@ -44,7 +40,6 @@ export function SearchInput(props: SearchInputProps): ReactNode {
 			const nextQuery = value.trim();
 
 			setInputValue(value);
-			onInputChange(nextQuery);
 
 			if (debounceTimeRef.current !== null) {
 				clearTimeout(debounceTimeRef.current);
@@ -64,7 +59,7 @@ export function SearchInput(props: SearchInputProps): ReactNode {
 				onQueryChange(nextQuery);
 			}, DEBOUNCE_TIME);
 		},
-		[clearSearch, onQueryChange, onInputChange],
+		[clearSearch, onQueryChange],
 	);
 
 	return (

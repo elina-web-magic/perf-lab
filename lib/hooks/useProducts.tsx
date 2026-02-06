@@ -1,7 +1,6 @@
 import { loadProducts } from "@/components/perf-lab-b/api/loadProducts";
-import type { Product } from "@/components/perf-lab-b/types";
+import type { Category, Product } from "@/components/perf-lab-b/types";
 import { useCallback, useEffect, useRef, useState } from "react";
-import _ from "lodash";
 import { mapApiProductToProduct } from "@/components/perf-lab-b/api/mapApiProductToProduct";
 
 type UseProductsReturn = {
@@ -9,7 +8,6 @@ type UseProductsReturn = {
 	loading: boolean;
 	searchLoading?: boolean;
 	loadMoreLoading?: boolean;
-	suggestionsLoading?: boolean;
 	error: string | null;
 	loadMore: () => void;
 	hasMore: boolean;
@@ -19,18 +17,18 @@ type UseProductsArgs = {
 	limit: number;
 	initialSkip?: number;
 	query?: string;
+	category?: Category | null;
 };
 
 type Mode = "replace" | "loadMore" | "init";
 
 export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
-	const { limit, initialSkip = 0, query = "" } = props;
+	const { limit, initialSkip = 0, query = "", category } = props;
 
 	const [loading, setLoading] = useState<boolean>(false);
 	const [products, setProducts] = useState<Product[]>([]);
 	const [searchLoading, setSearchLoading] = useState(false);
 	const [loadMoreLoading, setLoadMoreLoading] = useState(false);
-	const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
 	const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +51,6 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 				setLoading(true);
 			} else {
 				setSearchLoading(true);
-				setSuggestionsLoading(true);
 			}
 
 			setError(null);
@@ -62,7 +59,13 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 			const requestId = requestIdRef.current;
 
 			try {
-				const res = await loadProducts(skipRef.current, limit, query);
+				const res = await loadProducts(
+					skipRef.current,
+					limit,
+					query,
+					undefined,
+					category,
+				);
 				if (requestId !== requestIdRef.current) return;
 
 				const { products: apiProducts, total } = res;
@@ -85,14 +88,13 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 					setLoading(false);
 					setSearchLoading(false);
 					setLoadMoreLoading(false);
-					setSuggestionsLoading(false);
 					inFlightRef.current = false;
 				} else {
 					inFlightRef.current = false;
 				}
 			}
 		},
-		[limit, query, hasMore],
+		[limit, query, hasMore, category],
 	);
 
 	const loadMore = useCallback(() => {
@@ -111,21 +113,21 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 		setLoading(false);
 		setSearchLoading(false);
 		setLoadMoreLoading(false);
-		setSuggestionsLoading(false);
 
 		if (query.length > 0) {
+			void fetchNextPage("replace");
+		} else if (category && category?.length > 0) {
 			void fetchNextPage("replace");
 		} else {
 			void fetchNextPage("init");
 		}
-	}, [limit, initialSkip, query, fetchNextPage]);
+	}, [limit, initialSkip, query, category, fetchNextPage]);
 
 	return {
 		products,
 		loading,
 		searchLoading,
 		loadMoreLoading,
-		suggestionsLoading,
 		error,
 		loadMore,
 		hasMore,
