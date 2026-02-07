@@ -13,7 +13,7 @@ export async function loadProducts(
 	const q = query?.trim() ?? "";
 	if (q.length > 0) {
 		url.pathname += "/search";
-		url.searchParams.set("q", encodeURIComponent(q));
+		url.searchParams.set("q", q);
 	} else if (category) {
 		url.pathname += `/category/${category}`;
 	}

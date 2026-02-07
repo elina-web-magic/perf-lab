@@ -12,7 +12,6 @@ type SidePanelProps = {
 
 export default function SidePanel(props: SidePanelProps): ReactNode {
 	const { onCategoryChange, appliedCategory } = props;
-
 	return (
 		<div className="SidePanel text-card-foreground gap-6 shadow-sm gap-6 rounded-xl border p-4 h-full">
 			<h2>Filters</h2>

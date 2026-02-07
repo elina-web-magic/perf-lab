@@ -33,7 +33,6 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 	const [error, setError] = useState<string | null>(null);
 
 	const totalRef = useRef<number | null>(null);
-	const skipRef = useRef<number>(initialSkip);
 	const inFlightRef = useRef(false);
 	const requestIdRef = useRef<number>(0);
 
@@ -60,12 +59,13 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 
 			try {
 				const res = await loadProducts(
-					skipRef.current,
+					initialSkip,
 					limit,
 					query,
 					undefined,
 					category,
 				);
+
 				if (requestId !== requestIdRef.current) return;
 
 				const { products: apiProducts, total } = res;
@@ -78,8 +78,6 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 				} else {
 					setProducts((prev) => [...prev, ...currentProducts]);
 				}
-
-				skipRef.current += limit;
 			} catch (e) {
 				if (requestId !== requestIdRef.current) return;
 				if (e instanceof Error) setError(e.message);
@@ -94,7 +92,7 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 				}
 			}
 		},
-		[limit, query, hasMore, category],
+		[limit, query, hasMore, category, initialSkip],
 	);
 
 	const loadMore = useCallback(() => {
@@ -108,7 +106,6 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 
 		requestIdRef.current += 1;
 		totalRef.current = null;
-		skipRef.current = initialSkip;
 		setError(null);
 		setLoading(false);
 		setSearchLoading(false);
@@ -121,7 +118,7 @@ export const useProducts = (props: UseProductsArgs): UseProductsReturn => {
 		} else {
 			void fetchNextPage("init");
 		}
-	}, [limit, initialSkip, query, category, fetchNextPage]);
+	}, [limit, query, category, fetchNextPage]);
 
 	return {
 		products,

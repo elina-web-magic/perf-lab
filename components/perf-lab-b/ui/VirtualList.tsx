@@ -7,7 +7,7 @@ import { Fragment, useEffect, useRef, type ReactNode } from "react";
 type VirtualListProps = {
 	children: (index: number) => ReactNode;
 	hasMore: boolean;
-	loadMore: () => void;
+	onLoadMore: () => void;
 	className: string;
 	getKey?: (index: number) => string;
 	loading: boolean;
@@ -21,7 +21,7 @@ export default function VirtualList(props: VirtualListProps) {
 		getKey,
 		className,
 		renderCount,
-		loadMore,
+		onLoadMore,
 		loading,
 		hasMore,
 	} = props;
@@ -54,20 +54,20 @@ export default function VirtualList(props: VirtualListProps) {
 		if (!hasMore) return;
 		if (!sentinelRef.current || !containerRef.current) return;
 		if (!didMountRef.current) return;
+
 		const root = containerRef.current;
 
 		const sentinel = sentinelRef.current;
 		const observer = new IntersectionObserver(
 			(entries) => {
 				const intersecting = entries[0].isIntersecting;
-
 				if (!intersecting) return;
 				if (!hasMore) return;
 				if (loading) return;
 				if (requestedRef.current) return;
 
 				requestedRef.current = true;
-				loadMore();
+				onLoadMore();
 			},
 			{
 				root: root,
@@ -80,7 +80,7 @@ export default function VirtualList(props: VirtualListProps) {
 		return () => {
 			observer.unobserve(sentinel);
 		};
-	}, [loadMore, hasMore, loading]);
+	}, [onLoadMore, hasMore, loading]);
 
 	return (
 		<div
