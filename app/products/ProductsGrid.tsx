@@ -2,7 +2,6 @@
 
 import ProductCard from "@/components/perf-lab-a/ProductCard";
 import VirtualList from "@/components/perf-lab-b/ui/VirtualList";
-import { useProductsInfinite as useProducts } from "@/lib/products/useProductsInfinite";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleFadingArrowUpIcon } from "lucide-react";
@@ -14,33 +13,26 @@ import { writeFiltersToUrl } from "@/lib/url/writeFiltersToUrl";
 import { SearchInput } from "@/components/perf-lab-a-plus/ui/search/SearchInput";
 import SidePanel from "@/components/perf-lab-b/ui/SidePanel";
 
-import { LIMIT_VALUE } from "./constants";
+import { LIMIT_VALUE } from "../perf-lab-b/constants";
 import { useHydrateFiltersFromUrl } from "@/lib/store/filters/useHydrateFiltersFromUrl";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/lib/store/store";
-import type { Category } from "@/components/perf-lab-b/types";
+import type { Category, Product } from "@/components/perf-lab-b/types";
+import ProductsVirtualList from "@/components/productsGrid/ui/ProductsVirtualList";
+import { useProducts } from "@/lib/productsGrid/useProducts";
 
-const PerfLabB = (): ReactElement | null => {
+const ProductsGrid = (): ReactElement | null => {
 	const [showBackToTop, setShowBackToTop] = useState(false);
 
 	const listElRef = useRef<HTMLDivElement | null>(null);
 
-	useHydrateFiltersFromUrl(LIMIT_VALUE);
-	const dispatch = useDispatch<AppDispatch>();
-	const { q, cat, limit } = useSelector((s: RootState) => s.filters);
-
-	const {
-		products,
-		hasMore,
-		loading,
-		loadMore,
-		loadMoreLoading = false,
-		searchLoading = false,
-	} = useProducts({
-		limit: limit,
-		q,
-		cat,
-	});
+	const { products, hasMore, loading, loadMore, loadMoreLoading } = useProducts(
+		{
+			limit: LIMIT_VALUE,
+			skip: 0,
+		},
+	);
+	const cat = null;
 
 	const renderCount = products.length;
 
@@ -53,15 +45,9 @@ const PerfLabB = (): ReactElement | null => {
 		}
 	};
 
-	const onQueryChange = (nextQ: string) => {
-		dispatch(setQuery(nextQ));
-		writeFiltersToUrl({ q: nextQ });
-	};
+	const onQueryChange = (nextQ: string) => {};
 
-	const onCategoryChange = (nextCat: Category | null) => {
-		dispatch(setCategory(nextCat));
-		writeFiltersToUrl({ cat: nextCat });
-	};
+	const onCategoryChange = (nextCat: Category | null) => {};
 
 	const onLoadMore = () => {
 		if (!hasMore) return;
@@ -99,7 +85,7 @@ const PerfLabB = (): ReactElement | null => {
 					/>
 				</div>
 				<div className="ProductView">
-					<VirtualList
+					<ProductsVirtualList
 						className="Virtual_List"
 						onLoadMore={onLoadMore}
 						hasMore={hasMore}
@@ -109,7 +95,6 @@ const PerfLabB = (): ReactElement | null => {
 					>
 						{(index) => {
 							const list = products[index];
-
 							return (
 								<ProductCard
 									key={list.id}
@@ -123,12 +108,12 @@ const PerfLabB = (): ReactElement | null => {
 								/>
 							);
 						}}
-					</VirtualList>
-					{loadMoreLoading && !searchLoading && (
+					</ProductsVirtualList>
+					{/* {loadMoreLoading && !searchLoading && (
 						<div className="py-6 absolute bottom-0 left-1/2 transform translate-x-1/2 translate-y-0">
 							<Spinner className="LoadMore_Spinner Spinner" />
 						</div>
-					)}
+					)} */}
 					{renderCount === 0 && loading && (
 						<div className="py-6 w-full h-full flex justify-center content-center">
 							<Spinner className="Loading_Spinner Spinner size-8" />
@@ -152,4 +137,4 @@ const PerfLabB = (): ReactElement | null => {
 	);
 };
 
-export default PerfLabB;
+export default ProductsGrid;

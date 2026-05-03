@@ -1,7 +1,9 @@
 "use client";
 
 import type { VirtualWindowOutputs } from "@/lib/virtualization/getVirtualWindow";
+import { current } from "@reduxjs/toolkit";
 import clsx from "clsx";
+import { entries } from "lodash";
 import {
 	Fragment,
 	type RefObject,
@@ -22,7 +24,7 @@ type VirtualListProps = {
 	renderCount: number;
 };
 
-export default function VirtualList(props: VirtualListProps) {
+export default function ProductsVirtualList(props: VirtualListProps) {
 	const {
 		containerRef,
 		children,
@@ -36,12 +38,7 @@ export default function VirtualList(props: VirtualListProps) {
 
 	const visibleRows: ReactNode[] = [];
 	const sentinelRef = useRef<HTMLDivElement | null>(null);
-	const didMountRef = useRef(false);
 	const requestedRef = useRef(false);
-
-	useEffect(() => {
-		didMountRef.current = true;
-	}, []);
 
 	useEffect(() => {
 		if (!loading) requestedRef.current = false;
@@ -53,21 +50,20 @@ export default function VirtualList(props: VirtualListProps) {
 
 	for (let i = 0; i < renderCount; i++) {
 		const key = getKey ? getKey(i) : String(i);
-
 		visibleRows.push(<Fragment key={key}>{children(i)}</Fragment>);
 	}
 
 	useEffect(() => {
 		if (!hasMore) return;
 		if (!sentinelRef.current || !containerRef.current) return;
-		if (!didMountRef.current) return;
 
 		const root = containerRef.current;
-
 		const sentinel = sentinelRef.current;
+
 		const observer = new IntersectionObserver(
 			(entries) => {
 				const intersecting = entries[0].isIntersecting;
+
 				if (!intersecting) return;
 				if (!hasMore) return;
 				if (loading) return;
@@ -77,17 +73,16 @@ export default function VirtualList(props: VirtualListProps) {
 				onLoadMore();
 			},
 			{
-				root: root,
+				root,
 				rootMargin: "200px",
 				threshold: 0,
 			},
 		);
 		observer.observe(sentinel);
-
 		return () => {
-			observer.unobserve(sentinel);
+			observer.disconnect();
 		};
-	}, [onLoadMore, hasMore, loading, containerRef]);
+	}, [hasMore, containerRef, onLoadMore, loading]);
 
 	return (
 		<div

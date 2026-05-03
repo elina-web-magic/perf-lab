@@ -31,6 +31,12 @@ export default function Home() {
 						>
 							Perf Lab B
 						</Link>
+						<Link
+							href="/products"
+							className="rounded-lg border border-zinc-200 bg-white px-4 py-3 text-zinc-900 hover:bg-zinc-100 transition"
+						>
+							Show Products
+						</Link>
 					</nav>
 				</header>
 			</main>
